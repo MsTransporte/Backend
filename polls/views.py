@@ -5,7 +5,7 @@ from datetime import datetime
 from rest_framework import permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from polls.models import Admin ,Utlisateur , Client , Transporter , Intervention ,Notification , Meuble , Produit,Paiement , ListMeuble , LesProduit
+from polls.models import Admin ,Utlisateur , Client , Transporter , Intervention ,Notification , Meuble , Produit,Paiement , ListMeuble , LesProduit, Positions
 from django.db import connections
 from django.http import JsonResponse
 from rest_framework.response import Response
@@ -38,7 +38,7 @@ class InsertAdmin(APIView):
 
 class InsertClient(APIView):
    def post(self, request):
-     try:
+   #   try:
          body = json.loads(request.body.decode('utf-8'))
          nom1 = body.get('nom',None)
          prenom1 = body.get('prenom',None)
@@ -51,11 +51,12 @@ class InsertClient(APIView):
          id_user1=Utlisateur.objects.filter(email=email1,mot_de_passe=mot_de_passe1).values('id_user')[0]['id_user']
          c=Client(id_user=Utlisateur.objects.get(id_user=id_user1),telephone=telephone1)
          c.save()
+         id_cl1=Client.objects.filter(id_user=Utlisateur.objects.get(id_user=id_user1)).values('id_cl')[0]['id_cl']
          if(c):
-            return  Response({'Reponse':'secc'})
-     except:
-            pass
-            return Response({'Reponse':'Faild'})
+            return  Response({'Reponse':id_cl1})
+   #   except:
+            # pass
+            # return Response({'Reponse':'Faild'})
 
 class InsertTrnarsporter(APIView):
    def post(self, request):
@@ -73,6 +74,20 @@ class InsertTrnarsporter(APIView):
          a=Transporter(id_user=Utlisateur.objects.get(id_user=id_user1),telephone=telephone1)
          a.save()
          if(a):
+            return  HttpResponse("secc")
+     except:
+            pass
+            return Response({'Reponse':'Faild'})
+class InsertPositions(APIView):
+   def post(self, request):
+     try:
+         body = json.loads(request.body.decode('utf-8'))
+         latitude1 = body.get('latitude',None)
+         longitude1 = body.get('longitude',None)
+         id_tran1  = body.get('id_tran',None)
+         P=Positions(latitude=latitude1 ,longitude=longitude1 , id_tr=Transporter.objects.get(id_tran=id_tran1))
+         P.save()
+         if(P):
             return  HttpResponse("secc")
      except:
             pass
@@ -130,7 +145,7 @@ class InsertIntervention(APIView):
          I.save()
          id_in2=Intervention.objects.filter(id_cl=id_cl1,date_in=Date1).values('id_in')[0]['id_in']
          if(I):
-            return  HttpResponse(id_in2)
+            return  Response({'Reponse':id_in2})
      except:
             pass
             return Response({'Reponse':'Faild'})
@@ -310,7 +325,8 @@ class AfficheIntervetion1(APIView):
    def post(self, request):
      try:
          body = json.loads(request.body.decode('utf-8'))
-         id_in1  = body.get('id_in',None)
+         id_in1  = 98
+         # body.get('id_in',None)
          intervention1= Intervention.objects.filter(id_in=id_in1)
          Intervention_Serializer1 = InterventionSerializer(intervention1, many=True)
          return JsonResponse(Intervention_Serializer1.data[0] , safe=False)
@@ -570,15 +586,18 @@ class Verification(APIView):
         User_Serializer =UtlisateurSerializer(user,many=True)
         if(user.count()==1):
             id_user1=User_Serializer.data[0]['id_user']
+            
             admin= Admin.objects.filter(id_user=Utlisateur.objects.get(id_user=id_user1)).count()
             client= Client.objects.filter(id_user=Utlisateur.objects.get(id_user=id_user1)).count()
             transporter= Transporter.objects.filter(id_user=Utlisateur.objects.get(id_user=id_user1)).count()
             if(admin==1):
              return  HttpResponse("admin")
-            elif(client==1):
-             return  HttpResponse("client")
-            elif(transporter==1):
-             return  HttpResponse("transporter")
+            elif client==1:
+                  id_cl1=Client.objects.filter(id_user=Utlisateur.objects.get(id_user=id_user1)).values('id_cl')[0]['id_cl']
+                  return  Response({"Reponse":id_cl1});
+            elif transporter==1:
+             id_tran1=Transporter.objects.filter(id_user=Utlisateur.objects.get(id_user=id_user1)).values('id_tran')[0]['id_tran']
+             return  Response({"Reponse":id_tran1})
         else:
              return Response({"resultat":"field"})
      except:

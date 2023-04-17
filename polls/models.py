@@ -224,6 +224,17 @@ class Paiement(models.Model):
         db_table = 'paiement'
 
 
+class Positions(models.Model):
+    id = models.IntegerField(primary_key=True)
+    latitude = models.CharField(max_length=20)
+    longitude = models.CharField(max_length=20)
+    id_tr = models.ForeignKey('Transporter', models.DO_NOTHING, db_column='id_tr')
+
+    class Meta:
+        managed = False
+        db_table = 'positions'
+
+
 class Produit(models.Model):
     id_pr = models.AutoField(primary_key=True)
     poid = models.FloatField()
@@ -239,7 +250,6 @@ class Produit(models.Model):
 class Transporter(models.Model):
     id_tran = models.AutoField(primary_key=True)
     telephone = models.CharField(max_length=12)
-    position = models.CharField(max_length=150)
     id_user = models.OneToOneField('Utlisateur', models.DO_NOTHING, db_column='id_user')
 
     class Meta:
@@ -251,7 +261,7 @@ class Utlisateur(models.Model):
     id_user = models.AutoField(primary_key=True)
     nom = models.CharField(max_length=40)
     prenom = models.CharField(max_length=50)
-    adresse = models.CharField(max_length=255)
+    adresse = models.CharField(max_length=255, blank=True, null=True)
     email = models.CharField(max_length=50)
     mot_de_passe = models.CharField(max_length=8)
 
