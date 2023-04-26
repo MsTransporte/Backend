@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from polls.models import Admin , Client , Transporter , Meuble , Produit , Intervention , Notification , Paiement , Utlisateur , Paiement , LesProduit , ListMeuble
+from polls.models import Admin , Client , Transporter , Meuble , Produit , Intervention , Notification , Paiement , Utlisateur , Paiement , LesProduit , ListMeuble, Positions , Tache , TacheTransporter
 
 class MeubleSerializer(serializers.ModelSerializer):
     class Meta:
@@ -28,7 +28,6 @@ class InterventionSerializer(serializers.ModelSerializer):
                     'date_livraison',
                     'date_in',
                     'id_cl',
-                    'id_tr',
                 )
 class ClientSerializer(serializers.ModelSerializer):
     class Meta:
@@ -75,7 +74,6 @@ class TransportersSerializer(serializers.ModelSerializer):
         model = Transporter
         fields = ('id_tran',
                     'telephone',
-                    'position',
                     'id_user',)
 class ClientSerializer(serializers.ModelSerializer):
     class Meta:
@@ -96,3 +94,41 @@ class LesProduitSerializer(serializers.ModelSerializer):
         fields = ( 
                  'prix' ,
         )
+class PositionsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model =Positions
+        fields = ( 
+                 'latitude' ,
+                 'longitude',
+                 'id_tr ',
+        )
+class TacheSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tache
+        fields = ( 
+                 'id_tache' ,
+                 'description',
+                 'etat',
+        )
+class TacheTranspoterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TacheTransporter
+        fields = ( 
+                    'id',
+                    'id_tran',
+                    'id_in',
+                    'id_tache' ,
+                 
+                )
+class IdTranspoterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Transporter
+        fields = ( 
+                    'id_tran',
+                )
+class IdTacherSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tache
+        fields = ( 
+                    'id_tache',
+                )

@@ -5,12 +5,12 @@ from datetime import datetime
 from rest_framework import permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from polls.models import Admin ,Utlisateur , Client , Transporter , Intervention ,Notification , Meuble , Produit,Paiement , ListMeuble , LesProduit, Positions
+from polls.models import Admin ,Utlisateur , Client , Transporter , Intervention ,Notification , Meuble , Produit,Paiement , ListMeuble , LesProduit, Positions , Tache , TacheTransporter
 from django.db import connections
 from django.http import JsonResponse
 from rest_framework.response import Response
 from django.core.exceptions import ObjectDoesNotExist
-from polls.serializers import MeubleSerializer , ProduitSerializer , UtlisateurSerializer  ,InterventionSerializer , PaiementSerializer , NotificationSerializer ,TransportersSerializer , ClientSerializer , ListMeubleSerializer ,LesProduitSerializer
+from polls.serializers import MeubleSerializer , ProduitSerializer , UtlisateurSerializer  ,InterventionSerializer , PaiementSerializer , NotificationSerializer ,TransportersSerializer , ClientSerializer , ListMeubleSerializer ,LesProduitSerializer , TacheTranspoterSerializer , IdTranspoterSerializer , TacheSerializer , IdTacherSerializer
 from django.core import serializers
 import json
 import logging
@@ -38,7 +38,7 @@ class InsertAdmin(APIView):
 
 class InsertClient(APIView):
    def post(self, request):
-   #   try:
+     try:
          body = json.loads(request.body.decode('utf-8'))
          nom1 = body.get('nom',None)
          prenom1 = body.get('prenom',None)
@@ -54,9 +54,9 @@ class InsertClient(APIView):
          id_cl1=Client.objects.filter(id_user=Utlisateur.objects.get(id_user=id_user1)).values('id_cl')[0]['id_cl']
          if(c):
             return  Response({'Reponse':id_cl1})
-   #   except:
-            # pass
-            # return Response({'Reponse':'Faild'})
+     except:
+            pass
+            return Response({'Reponse':'Faild'})
 
 class InsertTrnarsporter(APIView):
    def post(self, request):
@@ -130,26 +130,25 @@ class InsertPaiement(APIView):
             return Response({'Reponse':'Faild'})
 
 class InsertIntervention(APIView):
-   def post(self, request):
-     try:
-         body = json.loads(request.body.decode('utf-8'))
-         type_service1 = body.get('type_service',None)
-         adresse_deb1 = body.get('adresse_deb',None)
-         adresse_fin1 = body.get('adresse_fin',None)
-         date_livraison1 = body.get('date_livraison',None)
-         today = date.today()
-         d1 = today.strftime("%Y-%m-%d")
-         Date1 = d1
-         id_cl1  = body.get('id_cl',None)
-         I= Intervention(type_service=type_service1, adresse_deb=adresse_deb1, adresse_fin=adresse_fin1,date_livraison=date_livraison1,date_in=Date1, id_cl=Client.objects.get(id_cl=id_cl1) )
-         I.save()
-         id_in2=Intervention.objects.filter(id_cl=id_cl1,date_in=Date1).values('id_in')[0]['id_in']
-         if(I):
-            return  Response({'Reponse':id_in2})
-     except:
+    def post(self, request):
+        try:
+            body = json.loads(request.body.decode('utf-8'))
+            type_service1 = body.get('type_service',None)
+            adresse_deb1 = body.get('adresse_deb',None)
+            adresse_fin1 = body.get('adresse_fin',None)
+            date_livraison1 = body.get('date_livraison',None)
+            today = date.today()
+            d1 = today.strftime("%Y-%m-%d")
+            Date1 = d1
+            id_cl1  = body.get('id_cl',None)
+            I= Intervention(type_service=type_service1, adresse_deb=adresse_deb1, adresse_fin=adresse_fin1,date_livraison=date_livraison1,date_in=Date1, id_cl=Client.objects.get(id_cl=id_cl1) )
+            I.save()
+            id_in2=Intervention.objects.filter(id_cl=id_cl1,date_in=Date1).values('id_in')[0]['id_in']
+            if(I):
+                return  Response({'Reponse':id_in2})
+        except:
             pass
-            return Response({'Reponse':'Faild'})
-
+        return Response({'Reponse':'Faild'})
 class InsertMeuble(APIView):
    def post(self, request):
      try:
@@ -211,7 +210,37 @@ class InsertPoduits(APIView):
      except:
             pass
             return Response({'Reponse':'Faild'})
-          
+# class AcceptIntervention(APIView):
+#     def post(self, request):
+#         try:
+#             body = request.data
+#             id_in = body.get('id_in', None)
+#             client_notification = Notification.objects.create(titre='Intervention acceptée', sujet=f'Intervention {id_in} a été acceptée', date=datetime.now(), id_cl_id=Intervention.objects.get(id_in=id_in).id_cl_id)
+#             return Response({'Reponse': 'succès'})
+#         except:
+#             return Response({'Reponse': 'Failed'})     
+class InsertTaches(APIView):
+    def post(self, request):
+        try:
+            body = request.data
+            id_in1 = body.get('id_in', None)
+            client_notification = Notification.objects.create(titre='Intervention acceptée', sujet=f' votre Demande  a été acceptée', date=datetime.now(), id_cl_id=Intervention.objects.get(id_in=id_in1).id_cl_id)
+            description1 = body.get('description', None)
+            etat1="en cours"
+            tache = Tache(description=description1,etat=etat1, id_in=Intervention.objects.get(id_in=id_in1))
+            tache.save()
+            id_tache1=Tache.objects.filter(id_in=Intervention.objects.get(id_in=id_in1)).values('id_tache')[0]['id_tache']
+            serializer1 = IdTranspoterSerializer(body.get('data') , many=True)
+            # if serializer1.is_valid():
+            n=len(serializer1.data)
+            for i in range(n):
+               Ids=serializer1.data[i]
+               TT=TacheTransporter(id_tran=Transporter.objects.get(id_tran=Ids['id_tran']) , id_in=Intervention.objects.get(id_in=id_in1),id_tache=Tache.objects.get(id_tache=id_tache1))
+               TT.save()
+            return Response({'Reponse':'taches ajouter'})
+        except:
+            return Response({'Reponse': 'Impossible d’ajouter des touches'})
+
 class AfficheUtilisateur(APIView):
    def get(self, request, id_user1, formt=None):
       utilisateur = Utlisateur.objects.filter(id_user=id_user1).first()
@@ -233,7 +262,6 @@ class AfficheTransporter(APIView):
                'adresse':utilisateur_data['adresse'],
                'email':utilisateur_data['email'],
                'telephone': transporter.telephone,
-               'position': transporter.position
             }
             result.append(transporter_data)
          return JsonResponse(result, safe=False)
@@ -258,7 +286,6 @@ class AfficheTransporter1(APIView):
                'adresse':utilisateur_data['adresse'],
                'email':utilisateur_data['email'],
                'telephone': transporter.telephone,
-               'position': transporter.position
             }
             result.append(transporter_data)
          return JsonResponse(result[0], safe=False)
@@ -325,11 +352,10 @@ class AfficheIntervetion1(APIView):
    def post(self, request):
      try:
          body = json.loads(request.body.decode('utf-8'))
-         id_in1  = 98
-         # body.get('id_in',None)
+         id_in1  = body.get('id_in',None)
          intervention1= Intervention.objects.filter(id_in=id_in1)
          Intervention_Serializer1 = InterventionSerializer(intervention1, many=True)
-         return JsonResponse(Intervention_Serializer1.data[0] , safe=False)
+         return JsonResponse(Intervention_Serializer1.data , safe=False)
      except:
             pass
             return Response({'Reponse':'Faild'})
@@ -416,7 +442,37 @@ class AfficheLesProduit(APIView):
      except:
             pass
             return Response({'Reponse':'Faild'})
-          
+
+class AfficheTaches(APIView):
+   def post(self, request):
+     try:
+         body = json.loads(request.body.decode('utf-8'))
+         id_tr1  = body.get('id_tr',None)
+         id_taches= TacheTransporter.objects.filter(id_tran=Transporter.objects.get(id_tran=id_tr1)).values('id_tache')
+         ids_tache=IdTacherSerializer(id_taches, many=True)
+         Tache_Serialize = []
+         n = len(ids_tache.data)
+         for i in range(n):
+          id_tach = ids_tache.data[i]
+          taches = Tache.objects.filter(id_tache=id_tach['id_tache'], etat="en cours")
+          Tache_Serialize1 = TacheSerializer(taches, many=True)
+          Tache_Serialize.extend(Tache_Serialize1.data)
+         return JsonResponse(Tache_Serialize, safe=False)
+     except:
+            pass
+            return Response({'Reponse':'field'})    
+class AfficheDetailsTaches(APIView):
+    def post(self, request):
+        try:
+            body = json.loads(request.body.decode('utf-8'))
+            id_tache1 = body.get('id_tache', None)
+            id_in1 = Tache.objects.filter(id_tache=id_tache1).values('id_in')[0]['id_in']
+            intervention1= Intervention.objects.filter(id_in=id_in1)
+            Intervention_Serializer1 = InterventionSerializer(intervention1, many=True)
+            return JsonResponse(Intervention_Serializer1.data , safe=False)
+        except:
+            return Response({'Reponse': 'Failed'})
+
 class ModifierClient(APIView):
    def post(self,request):
       try:
@@ -594,10 +650,10 @@ class Verification(APIView):
              return  HttpResponse("admin")
             elif client==1:
                   id_cl1=Client.objects.filter(id_user=Utlisateur.objects.get(id_user=id_user1)).values('id_cl')[0]['id_cl']
-                  return  Response({"Reponse":id_cl1});
+                  return  Response({"ReponseCl":id_cl1});
             elif transporter==1:
              id_tran1=Transporter.objects.filter(id_user=Utlisateur.objects.get(id_user=id_user1)).values('id_tran')[0]['id_tran']
-             return  Response({"Reponse":id_tran1})
+             return  Response({"ReponseTr":id_tran1})
         else:
              return Response({"resultat":"field"})
      except:

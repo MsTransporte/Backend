@@ -159,7 +159,6 @@ class Intervention(models.Model):
     date_livraison = models.DateTimeField()
     date_in = models.DateTimeField()
     id_cl = models.ForeignKey(Client, models.DO_NOTHING, db_column='id_cl', blank=True, null=True)
-    id_tr = models.ForeignKey('Transporter', models.DO_NOTHING, db_column='id_tr', blank=True, null=True)
 
     class Meta:
         managed = False
@@ -225,7 +224,6 @@ class Paiement(models.Model):
 
 
 class Positions(models.Model):
-    id = models.IntegerField(primary_key=True)
     latitude = models.CharField(max_length=20)
     longitude = models.CharField(max_length=20)
     id_tr = models.ForeignKey('Transporter', models.DO_NOTHING, db_column='id_tr')
@@ -245,6 +243,29 @@ class Produit(models.Model):
     class Meta:
         managed = False
         db_table = 'produit'
+
+
+class Tache(models.Model):
+    id_tache = models.AutoField(primary_key=True)
+    description = models.CharField(max_length=255)
+    id_in = models.ForeignKey(Intervention, models.DO_NOTHING, db_column='id_in')
+    id_tt = models.ForeignKey('TacheTransporter', models.DO_NOTHING, db_column='id_tt', blank=True, null=True)
+    etat = models.CharField(max_length=50)
+
+    class Meta:
+        managed = False
+        db_table = 'tache'
+
+
+class TacheTransporter(models.Model):
+    id_tt = models.AutoField(primary_key=True)
+    id_tran = models.ForeignKey('Transporter', models.DO_NOTHING, db_column='id_tran')
+    id_in = models.ForeignKey(Intervention, models.DO_NOTHING, db_column='id_in')
+    id_tache = models.ForeignKey(Tache, models.DO_NOTHING, db_column='id_tache')
+
+    class Meta:
+        managed = False
+        db_table = 'tache_transporter'
 
 
 class Transporter(models.Model):
