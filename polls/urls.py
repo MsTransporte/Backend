@@ -19,6 +19,7 @@ urlpatterns = [
     path('AfficheTransporter1',views.AfficheTransporter1.as_view()),
     path('Verification', views.Verification.as_view()),
     path('AfficheClient',views.AfficheClient.as_view()),
+    path('AfficheClient1',views.AfficheClient1.as_view()),
     path('AfficheIntervetionT', views.AfficheIntervetionT.as_view()),
     path('AfficheIntervetionC', views.AfficheIntervetionC.as_view()),
     path('AfficheIntervetion1', views.AfficheIntervetion1.as_view()),

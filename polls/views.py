@@ -315,6 +315,31 @@ class AfficheClient(APIView):
             pass
             return Response({'Reponse':'Faild'})
 
+
+class AfficheClient1(APIView):
+   def post(self, request, format=None):
+    try:
+         body = json.loads(request.body.decode('utf-8'))
+         id_cl1 = body.get('id_cl',None)
+         client1 = Client.objects.filter(id_cl=id_cl1)
+         Client_Serializer= ClientSerializer (client1, many=True)
+         result = []
+         for client in client1:
+            id_user1 = client.id_user_id
+            utilisateur_data = AfficheUtilisateur().get(request, id_user1)
+            client_data = {
+               'id_cl': client.id_cl,
+               'nom': utilisateur_data['nom'],
+               'prenom':utilisateur_data['prenom'],
+               'adresse':utilisateur_data['adresse'],
+               'email':utilisateur_data['email'],
+               'telephone': client.telephone,
+            }
+            result.append(client_data)
+         return JsonResponse(result[0], safe=False)
+    except:
+            pass
+            return Response({'Reponse':'Faild'})
 class AfficheIntervetionC(APIView):
    def post(self, request):
      try:
@@ -463,15 +488,15 @@ class AfficheTaches(APIView):
             return Response({'Reponse':'field'})    
 class AfficheDetailsTaches(APIView):
     def post(self, request):
-        try:
+      #   try:
             body = json.loads(request.body.decode('utf-8'))
             id_tache1 = body.get('id_tache', None)
             id_in1 = Tache.objects.filter(id_tache=id_tache1).values('id_in')[0]['id_in']
             intervention1= Intervention.objects.filter(id_in=id_in1)
             Intervention_Serializer1 = InterventionSerializer(intervention1, many=True)
             return JsonResponse(Intervention_Serializer1.data , safe=False)
-        except:
-            return Response({'Reponse': 'Failed'})
+      #   except:
+            # return Response({'Reponse': 'Failed'})
 
 class ModifierClient(APIView):
    def post(self,request):
@@ -647,7 +672,7 @@ class Verification(APIView):
             client= Client.objects.filter(id_user=Utlisateur.objects.get(id_user=id_user1)).count()
             transporter= Transporter.objects.filter(id_user=Utlisateur.objects.get(id_user=id_user1)).count()
             if(admin==1):
-             return  HttpResponse("admin")
+             return  Response({"Reponse":"admin"});
             elif client==1:
                   id_cl1=Client.objects.filter(id_user=Utlisateur.objects.get(id_user=id_user1)).values('id_cl')[0]['id_cl']
                   return  Response({"ReponseCl":id_cl1});
@@ -681,7 +706,7 @@ class DeleteTranporter(APIView):
          id_user1=Transporter.objects.filter(id_tran=id_tran1).values('id_user')[0]['id_user']
          utlisateur1=Utlisateur.objects.get(id_user=id_user1)
          utlisateur1.delete()
-         return Response("secc")
+         return Response({'Reponse':"secc"})
      except:
             pass
             return Response({'Reponse':'Faild'})
