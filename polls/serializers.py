@@ -100,7 +100,7 @@ class PositionsSerializer(serializers.ModelSerializer):
         fields = ( 
                  'latitude' ,
                  'longitude',
-                 'id_tr ',
+                 'id_tr',
         )
 class TacheSerializer(serializers.ModelSerializer):
     class Meta:

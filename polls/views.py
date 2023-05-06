@@ -10,7 +10,7 @@ from django.db import connections
 from django.http import JsonResponse
 from rest_framework.response import Response
 from django.core.exceptions import ObjectDoesNotExist
-from polls.serializers import MeubleSerializer , ProduitSerializer , UtlisateurSerializer  ,InterventionSerializer , PaiementSerializer , NotificationSerializer ,TransportersSerializer , ClientSerializer , ListMeubleSerializer ,LesProduitSerializer , TacheTranspoterSerializer , IdTranspoterSerializer , TacheSerializer , IdTacherSerializer
+from polls.serializers import MeubleSerializer , ProduitSerializer , UtlisateurSerializer  ,InterventionSerializer , PaiementSerializer , NotificationSerializer ,TransportersSerializer , ClientSerializer , ListMeubleSerializer ,LesProduitSerializer , TacheTranspoterSerializer , IdTranspoterSerializer , TacheSerializer , IdTacherSerializer , PositionsSerializer
 from django.core import serializers
 import json
 import logging
@@ -380,7 +380,7 @@ class AfficheIntervetion1(APIView):
          id_in1  = body.get('id_in',None)
          intervention1= Intervention.objects.filter(id_in=id_in1)
          Intervention_Serializer1 = InterventionSerializer(intervention1, many=True)
-         return JsonResponse(Intervention_Serializer1.data , safe=False)
+         return JsonResponse(Intervention_Serializer1.data[0] , safe=False)
      except:
             pass
             return Response({'Reponse':'Faild'})
@@ -497,6 +497,14 @@ class AfficheDetailsTaches(APIView):
             return JsonResponse(Intervention_Serializer1.data , safe=False)
       #   except:
             # return Response({'Reponse': 'Failed'})
+class AffichePositionTransporteurC(APIView):
+    def post(self , request):
+        body = json.loads(request.body.decode('utf-8'))
+        id_in1 = body.get('id_in', None)
+        id_tran1= TacheTransporter.objects.filter(id_in=Intervention.objects.get(id_in=id_in1)).values('id_tran')[0]['id_tran']
+        positions=Positions.objects.filter(id_tr=Transporter.objects.get(id_tran=id_tran1))
+        Positions_Serializer= PositionsSerializer(positions,many=True)
+        return  JsonResponse(Positions_Serializer.data[0] , safe=False)
 
 class ModifierClient(APIView):
    def post(self,request):

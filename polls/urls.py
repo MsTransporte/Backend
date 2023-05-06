@@ -32,6 +32,7 @@ urlpatterns = [
     path('AfficheLesProduit/get/',views.AfficheLesProduit.as_view()),
     path('AfficheTaches',views.AfficheTaches.as_view()),
     path('AfficheDetailsTaches',views.AfficheDetailsTaches.as_view()),
+    path('AffichePositionTransporteurC',views.AffichePositionTransporteurC.as_view()),
     path('ModifierClient', views.ModifierClient.as_view()),
     path('ModifierTransporter', views.ModifierTransporter.as_view()),
     path('ModifierTransporterPosition', views.ModifierTransporterPosition.as_view()),
