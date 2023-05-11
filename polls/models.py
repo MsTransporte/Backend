@@ -212,7 +212,7 @@ class Notification(models.Model):
 
 
 class Paiement(models.Model):
-    id_p = models.AutoField(primary_key=True)
+    id= models.AutoField(primary_key=True)
     prix = models.IntegerField()
     date = models.DateTimeField()
     id_cl = models.ForeignKey(Client, models.DO_NOTHING, db_column='id_cl')

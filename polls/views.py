@@ -15,6 +15,9 @@ from django.core import serializers
 import json
 import logging
 import threading
+import stripe
+from django.db.models import Subquery, OuterRef
+from django.views.decorators.csrf import csrf_exempt
 
 class InsertAdmin(APIView):
    def post(self, request):
@@ -113,7 +116,7 @@ class InsertNotification(APIView):
 
 class InsertPaiement(APIView):
    def post(self, request):
-     try:
+   #   try:
          body = json.loads(request.body.decode('utf-8'))
          prix1 = body.get('prix',None)
          today = date.today()
@@ -121,13 +124,20 @@ class InsertPaiement(APIView):
          Date1 = d1
          id_cl1  = body.get('id_cl',None)
          id_in1  = body.get('id_in',None)
+         # id_tran1= body.get('id_tran',None)
          P=Paiement(prix=prix1 ,date=Date1 , id_cl=Client.objects.get(id_cl=id_cl1), id_in=Intervention.objects.get(id_in=id_in1))
          P.save()
          if(P):
-            return  HttpResponse("secc")
-     except:
-            pass
-            return Response({'Reponse':'Faild'})
+            id_tt2=Tache.objects.filter(id_in=Intervention.objects.get(id_in=id_in1)).values('id_tt')[0]['id_tt']
+            id_tran1=TacheTransporter.objects.filter(id_tt=id_tt2).values('id_tran')[0]['id_tran']
+            Transporteur_notification = Notification.objects.create(titre='Un Nouveau Tâche à Traiter ', sujet=' Un Nouveau Tâche à Traiter', date=datetime.now(), id_tran=Transporter.objects.get(id_tran=id_tran1))
+            id_tt1=TacheTransporter.objects.filter(id_tran=Transporter.objects.get(id_tran=id_tran1)).values('id_tt')[0]['id_tt']
+            tache= Tache.objects.filter(id_tt=TacheTransporter.objects.get(id_tt=id_tt1))
+            tache=etat="en cours"
+            return  Response({'Reponse':'secc'})
+   #   except:
+            # pass
+            # return Response({'Reponse':'Faild'})
 
 class InsertIntervention(APIView):
     def post(self, request):
@@ -143,7 +153,7 @@ class InsertIntervention(APIView):
             id_cl1  = body.get('id_cl',None)
             I= Intervention(type_service=type_service1, adresse_deb=adresse_deb1, adresse_fin=adresse_fin1,date_livraison=date_livraison1,date_in=Date1, id_cl=Client.objects.get(id_cl=id_cl1) )
             I.save()
-            id_in2=Intervention.objects.filter(id_cl=id_cl1,date_in=Date1).values('id_in')[0]['id_in']
+            id_in2 = Intervention.objects.filter(id_cl=id_cl1, date_in=Date1).values('id_in').last()['id_in']
             if(I):
                 return  Response({'Reponse':id_in2})
         except:
@@ -367,7 +377,7 @@ class AfficheIntervetionT(APIView):
 class AfficheIntervetionAll(APIView):
    def post(self, request):
      try:
-         intervention1= Intervention.objects.all()
+         intervention1= Intervention.objects.exclude(id_in__in=Subquery(Tache.objects.filter(id_in=OuterRef('id_in')).values('id_in')))
          Intervention_Serializer1 = InterventionSerializer(intervention1, many=True)
          return JsonResponse(Intervention_Serializer1.data , safe=False)
      except:
@@ -395,6 +405,17 @@ class AffichePaiment(APIView):
      except:
             pass
             return Response({'Reponse':'Faild'})
+class AffichePaimentAll(APIView):
+   def post(self, request):
+   #   try:
+         # body = json.loads(request.body.decode('utf-8'))
+         paiement1= Paiement.objects.all()
+         Paiement_Serializer1 = PaiementSerializer(paiement1, many=True)
+         return JsonResponse(Paiement_Serializer1.data , safe=False)
+   #   except:
+            # pass
+            # return Response({'Reponse':'Faild'})
+
 
 class AfficheNotificationC(APIView):
    def post(self, request):
@@ -445,11 +466,11 @@ class AfficheProduit(APIView):
             return Response({'Reponse':'Faild'})
 
 class AfficheListMeuble(APIView):
-   def get(self, request, format=None):
+   def post(self, request, format=None):
      try:
-         # body = json.loads(request.body.decode('utf-8'))
-         # type1  = body.get('type',None)
-         type1= request.GET.get('type', None)
+         body = json.loads(request.body.decode('utf-8'))
+         type1  = body.get('type',None)
+         # type1= request.GET.get('type', None)
          listmeuble1= ListMeuble.objects.filter(type=type1)
          ListMeuble_Serializer1 = ListMeubleSerializer(listmeuble1 , many=True)
          return JsonResponse(ListMeuble_Serializer1.data , safe=False)

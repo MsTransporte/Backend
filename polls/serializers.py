@@ -41,7 +41,7 @@ class PaiementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Paiement
         fields=(
-                    'id_p',
+                    'id',
                     'prix',
                     'date',
                     'id_cl',
