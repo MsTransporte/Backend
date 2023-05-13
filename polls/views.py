@@ -231,7 +231,7 @@ class InsertPoduits(APIView):
 #             return Response({'Reponse': 'Failed'})     
 class InsertTaches(APIView):
     def post(self, request):
-        try:
+      #   try:
             body = request.data
             id_in1 = body.get('id_in', None)
             client_notification = Notification.objects.create(titre='Intervention acceptée', sujet=f' votre Demande  a été acceptée', date=datetime.now(), id_cl_id=Intervention.objects.get(id_in=id_in1).id_cl_id)
@@ -240,16 +240,20 @@ class InsertTaches(APIView):
             tache = Tache(description=description1,etat=etat1, id_in=Intervention.objects.get(id_in=id_in1))
             tache.save()
             id_tache1=Tache.objects.filter(id_in=Intervention.objects.get(id_in=id_in1)).values('id_tache')[0]['id_tache']
-            serializer1 = IdTranspoterSerializer(body.get('data') , many=True)
+            serializer1 = IdTranspoterSerializer(body.get('transporteurs') , many=True)
             # if serializer1.is_valid():
             n=len(serializer1.data)
             for i in range(n):
                Ids=serializer1.data[i]
                TT=TacheTransporter(id_tran=Transporter.objects.get(id_tran=Ids['id_tran']) , id_in=Intervention.objects.get(id_in=id_in1),id_tache=Tache.objects.get(id_tache=id_tache1))
                TT.save()
+               id_tt1 = TacheTransporter.objects.filter(id_in=Intervention.objects.get(id_in=id_in1)).first()
+               tache1 = Tache.objects.get(id_in=id_in1)
+               tache1.id_tt = id_tt1
+               tache1.save()
             return Response({'Reponse':'taches ajouter'})
-        except:
-            return Response({'Reponse': 'Impossible d’ajouter des touches'})
+      #   except:
+            # return Response({'Reponse': 'Impossible d’ajouter des touches'})
 
 class AfficheUtilisateur(APIView):
    def get(self, request, id_user1, formt=None):
