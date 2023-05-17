@@ -103,7 +103,7 @@ class InsertNotification(APIView):
          titre1= body.get('titre',None)
          sujet1 = body.get('sujet',None)
          today = date.today()
-         d1 = today.strftime("%Y-%m-%d")
+         d1 = today.strftime("%Y-%m-%d %H:%M:%S")
          Date1 = d1
          id_cl1  = body.get('id_cl',None)
          I= Notification(titre=titre1, sujet=sujet1,date=Date1 , id_cl=Client.objects.get(id_cl=id_cl1))
@@ -120,7 +120,7 @@ class InsertPaiement(APIView):
          body = json.loads(request.body.decode('utf-8'))
          prix1 = body.get('prix',None)
          today = date.today()
-         d1 = today.strftime("%Y-%m-%d")
+         d1 = today.strftime("%Y-%m-%d %H:%M:%S")
          Date1 = d1
          id_cl1  = body.get('id_cl',None)
          id_in1  = body.get('id_in',None)
@@ -148,7 +148,7 @@ class InsertIntervention(APIView):
             adresse_fin1 = body.get('adresse_fin',None)
             date_livraison1 = body.get('date_livraison',None)
             today = date.today()
-            d1 = today.strftime("%Y-%m-%d")
+            d1 = today.strftime("%Y-%m-%d %H:%M:%S")
             Date1 = d1
             id_cl1  = body.get('id_cl',None)
             I= Intervention(type_service=type_service1, adresse_deb=adresse_deb1, adresse_fin=adresse_fin1,date_livraison=date_livraison1,date_in=Date1, id_cl=Client.objects.get(id_cl=id_cl1) )
@@ -231,12 +231,12 @@ class InsertPoduits(APIView):
 #             return Response({'Reponse': 'Failed'})     
 class InsertTaches(APIView):
     def post(self, request):
-      #   try:
+        try:
             body = request.data
             id_in1 = body.get('id_in', None)
             client_notification = Notification.objects.create(titre='Intervention acceptée', sujet=f' votre Demande  a été acceptée', date=datetime.now(), id_cl_id=Intervention.objects.get(id_in=id_in1).id_cl_id)
             description1 = body.get('description', None)
-            etat1="en cours"
+            etat1="on attend"
             tache = Tache(description=description1,etat=etat1, id_in=Intervention.objects.get(id_in=id_in1))
             tache.save()
             id_tache1=Tache.objects.filter(id_in=Intervention.objects.get(id_in=id_in1)).values('id_tache')[0]['id_tache']
@@ -252,9 +252,61 @@ class InsertTaches(APIView):
                tache1.id_tt = id_tt1
                tache1.save()
             return Response({'Reponse':'taches ajouter'})
-      #   except:
-            # return Response({'Reponse': 'Impossible d’ajouter des touches'})
-
+        except:
+            return Response({'Reponse': 'Impossible d’ajouter des touches'})
+class VerifDemande(APIView):
+    def post(self, request):
+        try:
+            body = request.data
+            id_in1 = body.get('id_in', None)
+            nb=Tache.objects.filter(id_in=Intervention.objects.get(id_in=id_in1)).count()
+            if(nb==1):
+              etat1=Tache.objects.filter(id_in=Intervention.objects.get(id_in=id_in1)).values('etat')[0]['etat']
+              return Response({'Reponse':etat1})
+            else:
+               return Response({'Reponse':'on attend'})
+        except:
+            return Response({'Reponse': 'field'})  
+class VerifPaiment(APIView):
+    def post(self, request):
+        try:
+            body = request.data
+            id_in1 = body.get('id_in', None)
+            nb=Paiement.objects.filter(id_in=Intervention.objects.get(id_in=id_in1)).count()
+            if(nb==1):
+              return Response({'Reponse':'paye'})
+            else:
+               return Response({'Reponse':'Non paye'})
+        except:
+            return Response({'Reponse': 'field'})  
+class EffecteTache(APIView):
+    def post(self, request):
+        try:
+            body = request.data
+            # id_tran1 = body.get('id_tran', None)
+            id_in1= body.get('id_in', None)
+            etat1="en cours de traitement"
+            tache1=Tache.objects.get(id_in=Intervention.objects.get(id_in=id_in1))
+            tache1.etat=etat1
+            tache1.save()
+            if(tache1):
+                client_notification = Notification.objects.create(titre='Les déménageurs vont venir ', sujet=f'Les déménageurs vont venir ', date=datetime.now(), id_cl_id=Intervention.objects.get(id_in=id_in1).id_cl_id)
+                return Response({'Reponse':'secc'})
+        except:
+            return Response({'Reponse': 'field'})  
+class TermineTache(APIView):
+    def post(self, request):
+        try:
+            body = request.data
+            id_in1= body.get('id_in', None)
+            etat1="termine"
+            tache1=Tache.objects.get(id_in=Intervention.objects.get(id_in=id_in1))
+            tache1.etat=etat1
+            tache1.save()
+            if(tache1):
+                return Response({'Reponse':'secc'})
+        except:
+            return Response({'Reponse': 'field'})  
 class AfficheUtilisateur(APIView):
    def get(self, request, id_user1, formt=None):
       utilisateur = Utlisateur.objects.filter(id_user=id_user1).first()
@@ -606,7 +658,7 @@ class ModifierIntervention(APIView):
          adresse_deb1 = body.get('adresse_deb',None)
          adresse_fin1 = body.get('adresse_fin',None)
          today = date.today()
-         d1 = today.strftime("%Y-%m-%d")
+         d1 = today.strftime("%Y-%m-%d %H:%M:%S")
          Date1 = d1
          date_livraison1 = body.get('date_livraison',None)
          id_tr1= body.get('id_tr',None)
