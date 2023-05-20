@@ -249,7 +249,6 @@ class Tache(models.Model):
     id_tache = models.AutoField(primary_key=True)
     description = models.CharField(max_length=255)
     id_in = models.ForeignKey(Intervention, models.DO_NOTHING, db_column='id_in')
-    id_tt = models.ForeignKey('TacheTransporter', models.DO_NOTHING, db_column='id_tt', blank=True, null=True)
     etat = models.CharField(max_length=50)
 
     class Meta:

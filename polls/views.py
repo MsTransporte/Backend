@@ -116,28 +116,29 @@ class InsertNotification(APIView):
 
 class InsertPaiement(APIView):
    def post(self, request):
-   #   try:
+     try:
          body = json.loads(request.body.decode('utf-8'))
          prix1 = body.get('prix',None)
          today = date.today()
-         d1 = today.strftime("%Y-%m-%d %H:%M:%S")
+         d1 = today.strftime("%Y-%m-%d %H:%M:%S") 
          Date1 = d1
          id_cl1  = body.get('id_cl',None)
          id_in1  = body.get('id_in',None)
-         # id_tran1= body.get('id_tran',None)
          P=Paiement(prix=prix1 ,date=Date1 , id_cl=Client.objects.get(id_cl=id_cl1), id_in=Intervention.objects.get(id_in=id_in1))
          P.save()
          if(P):
-            id_tt2=Tache.objects.filter(id_in=Intervention.objects.get(id_in=id_in1)).values('id_tt')[0]['id_tt']
-            id_tran1=TacheTransporter.objects.filter(id_tt=id_tt2).values('id_tran')[0]['id_tran']
-            Transporteur_notification = Notification.objects.create(titre='Un Nouveau Tâche à Traiter ', sujet=' Un Nouveau Tâche à Traiter', date=datetime.now(), id_tran=Transporter.objects.get(id_tran=id_tran1))
-            id_tt1=TacheTransporter.objects.filter(id_tran=Transporter.objects.get(id_tran=id_tran1)).values('id_tt')[0]['id_tt']
-            tache= Tache.objects.filter(id_tt=TacheTransporter.objects.get(id_tt=id_tt1))
-            tache=etat="en cours"
+            id_tache1=Tache.objects.filter(id_in=id_in1).values('id_tache')[0]['id_tache']
+            tache= Tache.objects.get(id_tache=id_tache1)
+            tache.etat="en cours"
+            tache.save()
+            list_id=TacheTransporter.objects.filter(id_tache=id_tache1).values('id_tt')
+            for id in list_id :
+               id_tran1=TacheTransporter.objects.filter(id_tt=id['id_tt']).values('id_tran')[0]['id_tran']
+               Transporteur_notification = Notification.objects.create(titre='Un Nouveau Tâche à Traiter ', sujet=' Un Nouveau Tâche à Traiter', date=datetime.now(), id_tran=Transporter.objects.get(id_tran=id_tran1))
             return  Response({'Reponse':'secc'})
-   #   except:
-            # pass
-            # return Response({'Reponse':'Faild'})
+     except:
+            pass
+            return Response({'Reponse':'Faild'})
 
 class InsertIntervention(APIView):
     def post(self, request):
@@ -147,9 +148,8 @@ class InsertIntervention(APIView):
             adresse_deb1 = body.get('adresse_deb',None)
             adresse_fin1 = body.get('adresse_fin',None)
             date_livraison1 = body.get('date_livraison',None)
-            today = date.today()
-            d1 = today.strftime("%Y-%m-%d %H:%M:%S")
-            Date1 = d1
+   
+            Date1 = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             id_cl1  = body.get('id_cl',None)
             I= Intervention(type_service=type_service1, adresse_deb=adresse_deb1, adresse_fin=adresse_fin1,date_livraison=date_livraison1,date_in=Date1, id_cl=Client.objects.get(id_cl=id_cl1) )
             I.save()
@@ -220,21 +220,21 @@ class InsertPoduits(APIView):
      except:
             pass
             return Response({'Reponse':'Faild'})
-# class AcceptIntervention(APIView):
-#     def post(self, request):
-#         try:
-#             body = request.data
-#             id_in = body.get('id_in', None)
-#             client_notification = Notification.objects.create(titre='Intervention acceptée', sujet=f'Intervention {id_in} a été acceptée', date=datetime.now(), id_cl_id=Intervention.objects.get(id_in=id_in).id_cl_id)
-#             return Response({'Reponse': 'succès'})
-#         except:
-#             return Response({'Reponse': 'Failed'})     
+
 class InsertTaches(APIView):
     def post(self, request):
-        try:
-            body = request.data
+      #   try:
+            body = json.loads(request.body.decode('utf-8'))
             id_in1 = body.get('id_in', None)
-            client_notification = Notification.objects.create(titre='Intervention acceptée', sujet=f' votre Demande  a été acceptée', date=datetime.now(), id_cl_id=Intervention.objects.get(id_in=id_in1).id_cl_id)
+            date1= body.get('date',None)
+            date2=Intervention.objects.filter(id_in=id_in1).values('date_livraison')[0]['date_livraison']
+            if(date1==date2):
+               client_notification = Notification.objects.create(titre='Demande', sujet=' Demande de transport  été acceptée', date=datetime.now().strftime("%Y-%m-%d %H:%M:%S") , id_cl_id=Intervention.objects.get(id_in=id_in1).id_cl_id)
+            else:
+                client_notification = Notification.objects.create(titre='Demande', sujet=' Demande de transport  été acceptée mais la date change à'+date1, date=datetime.now().strftime("%Y-%m-%d %H:%M:%S") , id_cl_id=Intervention.objects.get(id_in=id_in1).id_cl_id)
+                demande=Intervention.objects.get(id_in=id_in1)
+                demande.date_livraison=date1
+                demande.save()
             description1 = body.get('description', None)
             etat1="on attend"
             tache = Tache(description=description1,etat=etat1, id_in=Intervention.objects.get(id_in=id_in1))
@@ -245,15 +245,12 @@ class InsertTaches(APIView):
             n=len(serializer1.data)
             for i in range(n):
                Ids=serializer1.data[i]
-               TT=TacheTransporter(id_tran=Transporter.objects.get(id_tran=Ids['id_tran']) , id_in=Intervention.objects.get(id_in=id_in1),id_tache=Tache.objects.get(id_tache=id_tache1))
+               TT=TacheTransporter(id_tran=Transporter.objects.get(id_tran=Ids['id_tran']) , id_tache=Tache.objects.get(id_tache=id_tache1))
                TT.save()
-               id_tt1 = TacheTransporter.objects.filter(id_in=Intervention.objects.get(id_in=id_in1)).first()
-               tache1 = Tache.objects.get(id_in=id_in1)
-               tache1.id_tt = id_tt1
-               tache1.save()
+
             return Response({'Reponse':'taches ajouter'})
-        except:
-            return Response({'Reponse': 'Impossible d’ajouter des touches'})
+      #   except:
+      #       return Response({'Reponse': 'Impossible d’ajouter des touches'})
 class VerifDemande(APIView):
     def post(self, request):
         try:
@@ -264,7 +261,7 @@ class VerifDemande(APIView):
               etat1=Tache.objects.filter(id_in=Intervention.objects.get(id_in=id_in1)).values('etat')[0]['etat']
               return Response({'Reponse':etat1})
             else:
-               return Response({'Reponse':'on attend'})
+               return Response({'Reponse':'on attend admin'})
         except:
             return Response({'Reponse': 'field'})  
 class VerifPaiment(APIView):
@@ -578,11 +575,13 @@ class AffichePositionTransporteurC(APIView):
     def post(self , request):
         body = json.loads(request.body.decode('utf-8'))
         id_in1 = body.get('id_in', None)
-        id_tran1= TacheTransporter.objects.filter(id_in=Intervention.objects.get(id_in=id_in1)).values('id_tran')[0]['id_tran']
+        id_tache1= Tache.objects.filter(id_in=Intervention.objects.get(id_in=id_in1)).values('id_tache')[0]['id_tache']
+        id_tt1=TacheTransporter.objects.filter(id_tache=Tache.objects.get(id_tache=id_tache1)).values('id_tt')[0]['id_tt']
+        id_tran1= TacheTransporter.objects.filter(id_tt=id_tt1).values('id_tran')[0]['id_tran']
         positions=Positions.objects.filter(id_tr=Transporter.objects.get(id_tran=id_tran1))
         Positions_Serializer= PositionsSerializer(positions,many=True)
         return  JsonResponse(Positions_Serializer.data[0] , safe=False)
-
+       
 class ModifierClient(APIView):
    def post(self,request):
       try:
