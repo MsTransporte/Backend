@@ -212,7 +212,6 @@ class Notification(models.Model):
 
 
 class Paiement(models.Model):
-    id= models.AutoField(primary_key=True)
     prix = models.IntegerField()
     date = models.DateTimeField()
     id_cl = models.ForeignKey(Client, models.DO_NOTHING, db_column='id_cl')
@@ -259,7 +258,6 @@ class Tache(models.Model):
 class TacheTransporter(models.Model):
     id_tt = models.AutoField(primary_key=True)
     id_tran = models.ForeignKey('Transporter', models.DO_NOTHING, db_column='id_tran')
-    id_in = models.ForeignKey(Intervention, models.DO_NOTHING, db_column='id_in')
     id_tache = models.ForeignKey(Tache, models.DO_NOTHING, db_column='id_tache')
 
     class Meta:

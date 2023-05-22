@@ -18,6 +18,8 @@ import threading
 import stripe
 from django.db.models import Subquery, OuterRef
 from django.views.decorators.csrf import csrf_exempt
+from django.core.mail import send_mail
+from django.conf import settings
 
 class InsertAdmin(APIView):
    def post(self, request):
@@ -239,16 +241,17 @@ class InsertTaches(APIView):
             etat1="on attend"
             tache = Tache(description=description1,etat=etat1, id_in=Intervention.objects.get(id_in=id_in1))
             tache.save()
-            id_tache1=Tache.objects.filter(id_in=Intervention.objects.get(id_in=id_in1)).values('id_tache')[0]['id_tache']
-            serializer1 = IdTranspoterSerializer(body.get('transporteurs') , many=True)
-            # if serializer1.is_valid():
-            n=len(serializer1.data)
-            for i in range(n):
-               Ids=serializer1.data[i]
-               TT=TacheTransporter(id_tran=Transporter.objects.get(id_tran=Ids['id_tran']) , id_tache=Tache.objects.get(id_tache=id_tache1))
-               TT.save()
+            if(tache):
+               id_tache1=Tache.objects.filter(id_in=id_in1).values('id_tache')[0]['id_tache']
+               serializer1 = IdTranspoterSerializer(body.get('transporteurs') , many=True)
+               # if serializer1.is_valid():
+               n=len(serializer1.data)
+               for i in range(n):
+                  Ids=serializer1.data[i]
+                  TT=TacheTransporter(id_tran=Transporter.objects.get(id_tran=Ids['id_tran']) , id_tache=Tache.objects.get(id_tache=id_tache1))
+                  TT.save()
 
-            return Response({'Reponse':'taches ajouter'})
+               return Response({'Reponse':'taches ajouter'})
       #   except:
       #       return Response({'Reponse': 'Impossible d’ajouter des touches'})
 class VerifDemande(APIView):
@@ -304,6 +307,27 @@ class TermineTache(APIView):
                 return Response({'Reponse':'secc'})
         except:
             return Response({'Reponse': 'field'})  
+class sendEmail(APIView):
+    def post(self, request, format=None):
+        body = request.data
+        name = body.get('name', None)
+        email1 = body.get('email', None)
+        telephone1 = body.get('telephone', None)
+        sujet = body.get('sujet', None)
+        message = body.get('message', None)
+        email = 'bensaadmoutia51@gmail.com'  
+        message1 =  message + "\n" +  'contact moi  avec email '+  email1 + 'ou telephone ' + telephone1
+
+        send_mail(
+            sujet,  
+            message1, 
+            email1,  
+            [email],  
+            fail_silently=False
+        )
+        return Response({'Reponse': 'secc'})
+
+         
 class AfficheUtilisateur(APIView):
    def get(self, request, id_user1, formt=None):
       utilisateur = Utlisateur.objects.filter(id_user=id_user1).first()
@@ -399,7 +423,7 @@ class AfficheClient1(APIView):
                'telephone': client.telephone,
             }
             result.append(client_data)
-         return JsonResponse(result[0], safe=False)
+         return JsonResponse(result, safe=False)
     except:
             pass
             return Response({'Reponse':'Faild'})
@@ -586,19 +610,18 @@ class ModifierClient(APIView):
    def post(self,request):
       try:
          body = json.loads(request.body.decode('utf-8'))
-         id_user1  = body.get('id_user',None)
+         id_cl1  = body.get('id_cl',None)
+         id_user1=Client.objects.filter(id_cl=id_cl1).values('id_user')[0]['id_user']
          nom1 = body.get('nom',None)
          prenom1 = body.get('prenom',None)
-         adresse1 = body.get('adresse',None)
+         # adresse1 = body.get('adresse',None)
          email1 = body.get('email',None)
-         mot_de_passe1 = body.get('mot_de_passe',None)
          telephone1 = body.get('telephone',None)
          user= Utlisateur.objects.get(id_user=id_user1)
          user.nom=nom1
          user.prenom=prenom1
-         user.adresse=adresse1
+         # user.adresse=adresse1
          user.email=email1
-         user.mot_de_passe=mot_de_passe1
          user.save()
          client=Client.objects.get(id_user=Utlisateur.objects.get(id_user=id_user1)) 
          client.telephone=telephone1
@@ -608,6 +631,25 @@ class ModifierClient(APIView):
             pass
             return Response({'Reponse':'Faild'})
 
+class ModifierClientMotdepasse(APIView):
+   def post(self,request):
+      try:
+         body = json.loads(request.body.decode('utf-8'))
+         id_cl1  = body.get('id_cl',None)
+         id_user1=Client.objects.filter(id_cl=id_cl1).values('id_user')[0]['id_user']
+         mot_de_passe1 = body.get('mot_de_passe',None)
+         mot_de_passe2 = body.get('nmot_de_passe',None)
+         user= Utlisateur.objects.get(id_user=id_user1)
+         motdepasse=Utlisateur.objects.filter(id_user=id_user1 , mot_de_passe=mot_de_passe1)
+         if(motdepasse.count()==1):
+            user.mot_de_passe=mot_de_passe2
+            user.save()
+            return Response('secc')
+         else:
+             return Response('verife mot de passe')
+      except:
+            pass
+            return Response({'Reponse':'Faild'})
 class ModifierTransporter(APIView):
    def post(self,request ):
       try:
