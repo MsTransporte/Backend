@@ -455,8 +455,22 @@ class AfficheIntervetionAll(APIView):
    def post(self, request):
      try:
          intervention1= Intervention.objects.exclude(id_in__in=Subquery(Tache.objects.filter(id_in=OuterRef('id_in')).values('id_in')))
-         Intervention_Serializer1 = InterventionSerializer(intervention1, many=True)
-         return JsonResponse(Intervention_Serializer1.data , safe=False)
+         result = []
+         for intervention in intervention1:
+            id_cl1 = intervention.id_cl_id
+            id_user1 = Client.objects.filter(id_cl=id_cl1).values('id_user')[0]['id_user']
+            nom= Utlisateur.objects.filter(id_user=id_user1).values('nom')[0]['nom']
+            intervention2 = {
+               'id': intervention.id,
+               'nom': nom,
+               'type_service':intervention.type_service,
+               'date_in':intervention.date_in,
+               'adresse_deb':intervention.adresse_deb,
+               'adresse_fin':intervention.intervention,
+               'date_livraison':intervention.date_livraison
+            }
+            result.append(intervention2)
+         return JsonResponse(result , safe=False)
      except:
             pass
             return Response({'Reponse':'Faild'})
@@ -484,14 +498,26 @@ class AffichePaiment(APIView):
             return Response({'Reponse':'Faild'})
 class AffichePaimentAll(APIView):
    def post(self, request):
-   #   try:
-         # body = json.loads(request.body.decode('utf-8'))
+     try:
+         result = []
          paiement1= Paiement.objects.all()
-         Paiement_Serializer1 = PaiementSerializer(paiement1, many=True)
-         return JsonResponse(Paiement_Serializer1.data , safe=False)
-   #   except:
-            # pass
-            # return Response({'Reponse':'Faild'})
+         for paiment in paiement1:
+            id_cl1 = paiment.id_cl_id
+            id_user1 = Client.objects.filter(id_cl=id_cl1).values('id_user')[0]['id_user']
+            nom= Utlisateur.objects.filter(id_user=id_user1).values('nom')[0]['nom']
+            type_service1=Intervention.objects.filter(id_in=paiment.id_in_id).values('type_service')[0]['type_service']
+            paiement2 = {
+               'id': paiment.id,
+               'nom': nom,
+               'type_service':type_service1,
+               'date':paiment.date,
+               'prix':paiment.prix,
+            }
+            result.append(paiement2)
+         return JsonResponse(result , safe=False)
+     except:
+            pass
+            return Response({'Reponse':'Faild'})
 
 
 class AfficheNotificationC(APIView):
