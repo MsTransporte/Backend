@@ -279,7 +279,6 @@ class Utlisateur(models.Model):
     id_user = models.AutoField(primary_key=True)
     nom = models.CharField(max_length=40)
     prenom = models.CharField(max_length=50)
-    adresse = models.CharField(max_length=255, blank=True, null=True)
     email = models.CharField(max_length=50)
     mot_de_passe = models.CharField(max_length=8)
 

@@ -65,7 +65,6 @@ class UtlisateurSerializer(serializers.ModelSerializer):
         fields = ( 'id_user',
                   'nom',
                   'prenom' ,
-                  'adresse',
                   'email',
                   'mot_de_passe',
         )

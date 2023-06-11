@@ -42,7 +42,6 @@ urlpatterns = [
     path('ModifierClient', views.ModifierClient.as_view()),
     path('ModifierClientMotdepasse', views.ModifierClientMotdepasse.as_view()),
     path('ModifierTransporter', views.ModifierTransporter.as_view()),
-    path('ModifierTransporterPosition', views.ModifierTransporterPosition.as_view()),
     path('ModifierIntervention', views.ModifierIntervention.as_view()),
     path('ModifierMeuble', views.ModifierMeuble.as_view()),
     path('ModifierProduit', views.ModifierProduit.as_view()),
