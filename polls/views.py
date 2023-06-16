@@ -77,7 +77,7 @@ class InsertClient(APIView):
                   sujet="Bienvenue"
                   message = body.get('message', None)
                   email = email1 
-                  message1 = "Bienvenue Mr/ Mme"+ nom1 +"a la Ms Tranpsprter "  
+                  message1 = "Cher" + nom1 + "Bienvenue chez MS Transport ! Nous sommes ravis de vous compter parmi nos clients et nous tenons à vous remercier de nous avoir choisis pour répondre à vos besoins de transport.Votre inscription à notre société de transport a effectué avec succès.L'équipe MS Transport "  
                   send_mail(
                         sujet,  
                         message1, 
@@ -111,6 +111,17 @@ class InsertTrnarsporter(APIView):
             id_user1 = user.id_user
             a=Transporter(id_user_id=id_user1,telephone=telephone1)
             a.save()
+            message = body.get('message', None)
+            email = email1 
+            sujet="Bienvenue"
+            message1 =  "Cher" + nom1 +"Au nom de toute l'équipe de MS Transport, je tiens à vous souhaiter la bienvenue en tant que nouveau membre de notre réseau de transport !L'équipe MS Transport"  
+            send_mail(
+                    sujet,  
+                    message1, 
+                    email1,  
+                    [email],  
+                    fail_silently=False
+                  )
             if(a):
                return  HttpResponse("secc")
      except:
@@ -217,12 +228,15 @@ class InsertIntervention(APIView):
             adresse_fin2 = VerifAddress(adresse_fin1)
             if (adresse_deb2 == "France" ):
                if(adresse_fin2 =="France"):
-                  I= Intervention(type_service=type_service1, adresse_deb=adresse_deb1, adresse_fin=adresse_fin1,date_livraison=date_livraison1,date_in=Date1, id_cl=Client.objects.get(id_cl=id_cl1) )
-                  I.save()
-                  id_in2 = Intervention.objects.filter(id_cl=id_cl1, date_in=Date1).values('id_in').last()['id_in']
-                  if(I):
-                     print(id_in2)
-                     return  Response({'Reponse':id_in2})
+                    date= datetime.strptime(date_livraison1, "%Y-%m-%d %H:%M:%S")
+                    if (date.weekday() != 6) and (9 <= date.hour <= 18):
+                        I= Intervention(type_service=type_service1, adresse_deb=adresse_deb1, adresse_fin=adresse_fin1,date_livraison=date_livraison1,date_in=Date1, id_cl=Client.objects.get(id_cl=id_cl1) )
+                        I.save()
+                        id_in2 = Intervention.objects.filter(id_cl=id_cl1, date_in=Date1).values('id_in').last()['id_in']
+                        if(I):
+                           return  Response({'Reponse':id_in2})
+                    else:
+                        return Response({'Reponse':"date"})
                else:
                    return Response({'Reponse': "adressFin"})
             else :
@@ -301,9 +315,9 @@ class InsertTaches(APIView):
             date1 = date.strftime("%Y-%m-%d %H:%M")
             date2=Intervention.objects.filter(id_in=id_in1).first().date_livraison.strftime("%Y-%m-%d %H:%M")
             if(date1==date2):
-               client_notification = Notification.objects.create(titre='Demande', sujet=' Demande de transport  été acceptée', date=datetime.now().strftime("%Y-%m-%d %H:%M:%S") , id_cl_id=Intervention.objects.get(id_in=id_in1).id_cl_id)
+               client_notification = Notification.objects.create(titre='Demande', sujet=' Demande de transport  était acceptée', date=datetime.now().strftime("%Y-%m-%d %H:%M:%S") , id_cl_id=Intervention.objects.get(id_in=id_in1).id_cl_id)
             else:
-                client_notification = Notification.objects.create(titre='Demande', sujet=' Demande de transport  été acceptée mais la date change à'+date1, date=datetime.now().strftime("%Y-%m-%d %H:%M:%S") , id_cl_id=Intervention.objects.get(id_in=id_in1).id_cl_id)
+                client_notification = Notification.objects.create(titre='Demande', sujet=' Demande de transport  était acceptée, mais la date change à'+date1, date=datetime.now().strftime("%Y-%m-%d %H:%M:%S") , id_cl_id=Intervention.objects.get(id_in=id_in1).id_cl_id)
                 demande=Intervention.objects.get(id_in=id_in1)
                 demande.date_livraison=date1
                 demande.save()
@@ -481,15 +495,16 @@ class AfficheClient1(APIView):
             return Response({'Reponse':'Faild'})
 class AfficheIntervetionC(APIView):
    def post(self, request):
-     try:
+    #  try:
          body = json.loads(request.body.decode('utf-8'))
          id_cl1  = body.get('id_cl',None)
          intervention1= Intervention.objects.filter(id_cl=id_cl1)
+         # intervention1= Intervention.objects.raw("SELET Intervention.* FROM  Intervention WHERE Intervention.id_cl =%s",[id_cl1])
          Intervention_Serializer1 = InterventionSerializer(intervention1, many=True)
          return JsonResponse(Intervention_Serializer1.data , safe=False)
-     except:
-            pass
-            return Response({'Reponse':'Faild'})
+    #  except:
+    #         pass
+    #         return Response({'Reponse':'Faild'})
 
 class AfficheIntervetionT(APIView):
    def post(self, request):
