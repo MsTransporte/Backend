@@ -513,7 +513,7 @@ class AfficheIntervetionC(APIView):
      try:
          body = json.loads(request.body.decode('utf-8'))
          id_cl1  = body.get('id_cl',None)
-         intervention1 = Intervention.objects.raw("SELECT * FROM intervention INNER JOIN tache ON intervention.id_in = tache.id_in WHERE intervention.id_cl = %s AND tache.etat <> 'termine'", [id_cl1])
+         intervention1 = Intervention.objects.raw("SELECT * FROM intervention  JOIN tache ON intervention.id_in = tache.id_in WHERE intervention.id_cl = %s AND tache.etat != 'termine'", [id_cl1])
          Intervention_Serializer1 = InterventionSerializer(intervention1, many=True)
          return JsonResponse(Intervention_Serializer1.data , safe=False)
      except:
