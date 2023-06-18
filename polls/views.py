@@ -185,6 +185,21 @@ class InsertPaiement(APIView):
             tache= Tache.objects.get(id_tache=id_tache1)
             tache.etat="en cours"
             tache.save()
+            sujet="Paiment"
+            message = body.get('message', None)
+            id_user1= Client.objects.filter(id_cl=id_cl1).first().id_user
+            email1 = Utlisateur.objects.filter(id_user=id_user1).first().email
+            email = email1
+            nom1 = Utlisateur.objects.filter(id_user=id_user1).first().nom
+            type = Intervention.objects.filter(id_in=id_in1).first().type_service
+            message1 = "Cher" + nom1 + "Cher"+nom1+",Nous sommes heureux de vous informer que votre paiement a été reçu et traité avec succès.Déscription :Prix Total :"+prix1+"Nom du service :"+type+"L'équipe MS Transport."  
+            send_mail(
+                        sujet,  
+                        message1, 
+                        email1,  
+                        [email],  
+                        fail_silently=False
+                  )
             list_id_tt=TacheTransporter.objects.filter(id_tache=id_tache1).values('id_tt')
             for id in list_id_tt :
                id_tran1=TacheTransporter.objects.filter(id_tt=id['id_tt']).first().id_tran_id
@@ -495,16 +510,15 @@ class AfficheClient1(APIView):
             return Response({'Reponse':'Faild'})
 class AfficheIntervetionC(APIView):
    def post(self, request):
-    #  try:
+     try:
          body = json.loads(request.body.decode('utf-8'))
          id_cl1  = body.get('id_cl',None)
-         intervention1= Intervention.objects.filter(id_cl=id_cl1)
-         # intervention1= Intervention.objects.raw("SELET Intervention.* FROM  Intervention WHERE Intervention.id_cl =%s",[id_cl1])
+         intervention1 = Intervention.objects.raw("SELECT * FROM intervention INNER JOIN tache ON intervention.id_in = tache.id_in WHERE intervention.id_cl = %s AND tache.etat <> 'termine'", [id_cl1])
          Intervention_Serializer1 = InterventionSerializer(intervention1, many=True)
          return JsonResponse(Intervention_Serializer1.data , safe=False)
-    #  except:
-    #         pass
-    #         return Response({'Reponse':'Faild'})
+     except:
+            pass
+            return Response({'Reponse':'Faild'})
 
 class AfficheIntervetionT(APIView):
    def post(self, request):
@@ -521,7 +535,7 @@ class AfficheIntervetionT(APIView):
 class AfficheIntervetionAll(APIView):
    def post(self, request):
      try:
-         intervention1= Intervention.objects.exclude(id_in__in=Subquery(Tache.objects.filter(id_in=OuterRef('id_in')).values('id_in')))
+         intervention1= Intervention.objects.raw("SELECT * FROM intervention WHERE id_in NOT IN (SELECT id_in FROM tache)")
          interventions = []
          for intervention in intervention1:
             id_cl1 = intervention.id_cl_id
