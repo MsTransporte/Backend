@@ -170,7 +170,7 @@ class InsertNotification(APIView):
 
 class InsertPaiement(APIView):
    def post(self, request):
-     try:
+    #  try:
          body = json.loads(request.body.decode('utf-8'))
          prix1 = body.get('prix',None)
          today = date.today()
@@ -187,7 +187,7 @@ class InsertPaiement(APIView):
             tache.save()
             sujet="Paiment"
             message = body.get('message', None)
-            id_user1= Client.objects.filter(id_cl=id_cl1).first().id_user
+            id_user1 = Client.objects.filter(id_cl=id_cl1).first().id_user_id
             email1 = Utlisateur.objects.filter(id_user=id_user1).first().email
             email = email1
             nom1 = Utlisateur.objects.filter(id_user=id_user1).first().nom
@@ -205,9 +205,9 @@ class InsertPaiement(APIView):
                id_tran1=TacheTransporter.objects.filter(id_tt=id['id_tt']).first().id_tran_id
                Transporteur_notification = Notification.objects.create(titre='Un Nouveau Tâche à Traiter ', sujet=' Un Nouveau Tâche à Traiter', date=datetime.now(), id_tran_id=id_tran1)
             return  Response({'Reponse':'secc'})
-     except:
-            pass
-            return Response({'Reponse':'Faild'})
+    #  except:
+    #         pass
+    #         return Response({'Reponse':'Faild'})
      
 def VerifAddress(address):
     url = "https://maps.googleapis.com/maps/api/geocode/json"
@@ -231,7 +231,7 @@ def VerifAddress(address):
 
 class InsertIntervention(APIView):
     def post(self, request):
-        # try:
+        try:
             body = json.loads(request.body.decode('utf-8'))
             type_service1 = body.get('type_service',None)
             adresse_deb1 = body.get('adresse_deb',None)
@@ -256,9 +256,9 @@ class InsertIntervention(APIView):
                    return Response({'Reponse': "adressFin"})
             else :
                return Response({'Reponse': "adressedepart"})
-        # except:
-        #     pass
-        # return Response({'Reponse':'Faild'})
+        except:
+            pass
+        return Response({'Reponse':'Faild'})
 class InsertMeuble(APIView):
    def post(self, request):
      try:
@@ -381,7 +381,6 @@ class EffecteTache(APIView):
     def post(self, request):
         try:
             body = request.data
-            # id_tran1 = body.get('id_tran', None)
             id_in1= body.get('id_in', None)
             etat1="en cours de traitement"
             tache1=Tache.objects.get(id_in_id=id_in1)
@@ -513,7 +512,7 @@ class AfficheIntervetionC(APIView):
      try:
          body = json.loads(request.body.decode('utf-8'))
          id_cl1  = body.get('id_cl',None)
-         intervention1 = Intervention.objects.raw("SELECT * FROM intervention  JOIN tache ON intervention.id_in = tache.id_in WHERE intervention.id_cl = %s AND tache.etat != 'termine'", [id_cl1])
+         intervention1 = Intervention.objects.raw("SELECT * FROM intervention   WHERE id_cl = %s ", [id_cl1])
          Intervention_Serializer1 = InterventionSerializer(intervention1, many=True)
          return JsonResponse(Intervention_Serializer1.data , safe=False)
      except:
