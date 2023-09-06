@@ -961,3 +961,4 @@ class DeletePrduits(APIView):
      except:
             pass
             return Response({'Reponse':'Faild'})
+
